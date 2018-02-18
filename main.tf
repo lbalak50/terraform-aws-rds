@@ -1,28 +1,28 @@
 # Data lookup to get our CIDR
-data "aws_vpc" "default" {
+data "aws_vpc" "this" {
     id = "${var.vpc_id}"
 }
 
 # The randomly generated database password
-resource "random_string" "default" {
+resource "random_string" "this" {
     length  = 12
     special = false
 }
 
 # DB Instance
-resource "aws_db_instance" "default" {
+resource "aws_db_instance" "this" {
     identifier                  = "${replace(var.name,"-","")}"
     username                    = "${local.username}"
-    password                    = "${random_string.default.result}"
+    password                    = "${random_string.this.result}"
     port                        = "${local.port}"
     engine                      = "${var.engine}"
     engine_version              = "${local.engine_version}"
     instance_class              = "${var.instance_type}"
     allocated_storage           = "${var.allocated_storage}"
     storage_encrypted           = "${var.instance_type == "db.t2.micro" ? false : true}"
-    vpc_security_group_ids      = ["${compact(concat(list(aws_security_group.default.id), var.security_group_ids))}"]
-    db_subnet_group_name        = "${aws_db_subnet_group.default.name}"
-    parameter_group_name        = "${aws_db_parameter_group.default.name}"
+    vpc_security_group_ids      = ["${compact(concat(list(aws_security_group.this.id), var.security_group_ids))}"]
+    db_subnet_group_name        = "${aws_db_subnet_group.this.name}"
+    parameter_group_name        = "${aws_db_parameter_group.this.name}"
     multi_az                    = "${var.is_live ? true : false }"
     storage_type                = "gp2"
     publicly_accessible         = "false"
@@ -41,7 +41,7 @@ resource "aws_db_instance" "default" {
 }
 
 # DB Parameter Groups
-resource "aws_db_parameter_group" "default" {
+resource "aws_db_parameter_group" "this" {
     name      = "${var.name}"
     family    = "${local.engine_family}"
     parameter = "${var.db_parameter}"
@@ -50,7 +50,7 @@ resource "aws_db_parameter_group" "default" {
 }
 
 # The DB subnet group
-resource "aws_db_subnet_group" "default" {
+resource "aws_db_subnet_group" "this" {
     name       = "${var.name}"
     subnet_ids = ["${var.subnet_ids}"]
 
@@ -58,7 +58,7 @@ resource "aws_db_subnet_group" "default" {
 }
 
 # A default security group we'll create to allow everyone in our CIDR access
-resource "aws_security_group" "default" {
+resource "aws_security_group" "this" {
     name        = "${var.name}-rds-allow-cidr"
     description = "Allow inbound traffic from the CIDR"
     vpc_id      = "${var.vpc_id}"
@@ -67,7 +67,7 @@ resource "aws_security_group" "default" {
         from_port   = "${local.port}"
         to_port     = "${local.port}"
         protocol    = "tcp"
-        cidr_blocks = ["${data.aws_vpc.default.cidr_block}"]
+        cidr_blocks = ["${data.aws_vpc.this.cidr_block}"]
     }
 
     egress {

@@ -14,7 +14,7 @@ provider "aws" {
 
 # Add our RDS Database
 module "mysql" {
-    source             = "git::ssh://git@gitlab.olindata.com/terraform/terraform-aws-rds.git"
+    source             = "github.com/olindata/terraform-aws-ezvpc.git"
     name               = "widgetsrds"
     vpc_id             = "vpc-12312312"                          # Put your VPC ID here, maybe from our VPC module
     subnet_ids         = ["subnet-12312312", "subnet-23423423"]  # Put your private subnet IDs here, maybe from our VPC module
